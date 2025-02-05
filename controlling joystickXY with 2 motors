@@ -1,0 +1,85 @@
+#include <Wire.h>
+#include <Adafruit_PWMServoDriver.h>
+
+// Define PCA9685 object
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+
+// Define joystick pins (assuming analog joystick)
+const int joy1X = A0;  // X-axis for joystick 1
+const int joy1Y = A1;  // Y-axis for joystick 1
+
+// Define servo channel pins for PCA9685
+const int servo1 = 0; // Servo 1 on channel 1 of PCA9685
+const int servo2 = 1; // Servo 2 on channel 2 of PCA9685
+
+// Servo range values
+const int servoMin = 500;  // Minimum PWM value (leftmost position)
+const int servoMax = 2500; // Maximum PWM value (rightmost position)
+
+// Store last known positions
+int lastServo1Pos = (servoMin + servoMax) / 2;
+int lastServo2Pos = (servoMin + servoMax) / 2;
+
+// Target positions based on joystick input
+int targetServo1Pos = lastServo1Pos;
+int targetServo2Pos = lastServo2Pos;
+
+// Servo movement increment for nudging (how much to move each time)
+const int servoIncrement = 100; // Increased increment for faster movement
+
+void setup() {
+  // Initialize serial communication
+  Serial.begin(9600);
+
+  // Initialize PCA9685
+  pwm.begin();
+  pwm.setPWMFreq(60); // Set frequency to 60Hz
+}
+
+void loop() {
+  // Read joystick values
+  int joy1XVal = analogRead(joy1X); // X-axis (left/right)
+  int joy1YVal = analogRead(joy1Y); // Y-axis (up/down)
+
+  // Nudge Servo 1 based on joystick Y-axis (up/down)
+  if (joy1YVal < 462) { // Joystick pushed up (deadzone increased)
+    // Move the servo closer to the minimum position
+    if (lastServo1Pos > servoMin) {
+      lastServo1Pos -= servoIncrement; // Nudge towards the minimum position
+    }
+  } else if (joy1YVal > 562) { // Joystick pushed down (deadzone increased)
+    // Move the servo closer to the maximum position
+    if (lastServo1Pos < servoMax) {
+      lastServo1Pos += servoIncrement; // Nudge towards the maximum position
+    }
+  }
+
+  // Nudge Servo 2 based on joystick X-axis (left/right)
+  if (joy1XVal < 462) { // Joystick pushed left (deadzone increased)
+    // Move the servo closer to the minimum position
+    if (lastServo2Pos > servoMin) {
+      lastServo2Pos -= servoIncrement; // Nudge towards the minimum position
+    }
+  } else if (joy1XVal > 562) { // Joystick pushed right (deadzone increased)
+    // Move the servo closer to the maximum position
+    if (lastServo2Pos < servoMax) {
+      lastServo2Pos += servoIncrement; // Nudge towards the maximum position
+    }
+  }
+
+  // Write the updated positions to the servos
+  pwm.writeMicroseconds(servo1, lastServo1Pos);
+  pwm.writeMicroseconds(servo2, lastServo2Pos);
+
+  // Debugging: Print joystick values and servo positions
+  Serial.print("Joy1 X: ");
+  Serial.print(joy1XVal);
+  Serial.print(" | Joy1 Y: ");
+  Serial.print(joy1YVal);
+  Serial.print(" | Servo 1: ");
+  Serial.print(lastServo1Pos);
+  Serial.print(" | Servo 2: ");
+  Serial.println(lastServo2Pos);
+
+  delay(10); // Small delay for smooth operation
+}
