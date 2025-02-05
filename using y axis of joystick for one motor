@@ -1,0 +1,80 @@
+#include <Wire.h>
+#include <Adafruit_PWMServoDriver.h>
+
+// Define PCA9685 object
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+
+// Define joystick pins (analog inputs)
+const int joy1Y = A1; // Y-axis for joystick 1
+
+// Define servo channels
+const int servo1 = 0; // Servo 1 on channel 0
+
+// Define servo motion range (in microseconds) for a 270-degree servo
+const int servo1Min = 500;  // Leftmost position
+const int servo1Max = 2500; // Rightmost position
+const int servoNeutral = 1500; // Neutral (center) position
+
+// Define deadband range for joystick
+const int deadband = 50;
+
+// Smoothing variables
+const int numSamples = 10; // Number of samples for averaging
+int joy1YValues[numSamples] = {0}; // Array to store samples
+int sampleIndex = 0;               // Current sample index
+long total = 0;                    // Sum of samples
+
+void setup() {
+  // Initialize serial communication
+  Serial.begin(9600);
+
+  // Initialize PCA9685
+  pwm.begin();
+  pwm.setPWMFreq(60); // Set frequency to 60Hz (standard for servos)
+
+  // Move servo 1 to its neutral position at startup
+  pwm.writeMicroseconds(servo1, servoNeutral);
+
+  // Initialize smoothing variables
+  for (int i = 0; i < numSamples; i++) {
+    joy1YValues[i] = 512; // Default to center position
+    total += joy1YValues[i];
+  }
+}
+
+void loop() {
+  // Read the Y-axis value of joystick 1
+  int joy1YVal = analogRead(joy1Y);
+
+  // Add the new value to the total and remove the oldest value
+  total = total - joy1YValues[sampleIndex] + joy1YVal;
+
+  // Update the smoothing array
+  joy1YValues[sampleIndex] = joy1YVal;
+  sampleIndex = (sampleIndex + 1) % numSamples;
+
+  // Calculate the smoothed value
+  int smoothedJoy1Y = total / numSamples;
+
+  // Check if the joystick is outside the deadband
+  if (abs(smoothedJoy1Y - 512) > deadband) {
+    // Map smoothed joystick value to servo range
+    int servo1Pos = map(smoothedJoy1Y, 0, 1023, servo1Min, servo1Max);
+
+    // Move servo 1
+    pwm.writeMicroseconds(servo1, servo1Pos);
+
+    // Debugging: Print joystick value and servo position
+    Serial.print("Joystick 1 Y (Smoothed): ");
+    Serial.print(smoothedJoy1Y);
+    Serial.print(", Servo 1 Position: ");
+    Serial.println(servo1Pos);
+  } else {
+    // Keep servo 1 at its current position if within deadband
+    Serial.println("Joystick 1 in deadband. Servo 1 remains stationary.");
+  }
+
+  delay(50); // Small delay for stability
+}
+
+
