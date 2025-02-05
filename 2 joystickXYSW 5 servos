@@ -1,0 +1,127 @@
+// Pin Definitions for Joystick 1 (controlling Motor Driver 1)
+const int xAxisPin1 = A0;   // Joystick 1 X-axis
+const int yAxisPin1 = A1;   // Joystick 1 Y-axis
+const int swPin1 = A4;      // Joystick 1 Switch (SW) on A4
+
+// Pin Definitions for Joystick 2 (controlling Motor Driver 2)
+const int xAxisPin2 = A2;   // Joystick 2 X-axis
+const int yAxisPin2 = A3;   // Joystick 2 Y-axis
+const int swPin2 = A5;      // Joystick 2 Switch (SW) on A5
+
+// Pin Definitions for Motor Driver 1
+const int motor1PWM = 3;    // Motor 1 PWM (Driver 1)
+const int motor1DIR = 2;    // Motor 1 Direction (Driver 1)
+const int motor2PWM = 5;    // Motor 2 PWM (Driver 1)
+const int motor2DIR = 4;    // Motor 2 Direction (Driver 1)
+
+// Pin Definitions for Motor Driver 2
+const int motor3PWM = 6;    // Motor 3 PWM (Driver 2)
+const int motor3DIR = 7;    // Motor 3 Direction (Driver 2)
+const int motor4PWM = 9;    // Motor 4 PWM (Driver 2)
+const int motor4DIR = 8;    // Motor 4 Direction (Driver 2)
+
+// Pin Definitions for Motor 5 (controlled by Joystick SW)
+const int motor5PWM = 10;   // Motor 5 PWM
+const int motor5DIR = 11;   // Motor 5 Direction
+
+// Dead zone threshold
+const int DEADZONE = 100;   // Set the size of the dead zone
+
+void setup() {
+  // Motor pins for Driver 1 as outputs
+  pinMode(motor1PWM, OUTPUT);
+  pinMode(motor1DIR, OUTPUT);
+  pinMode(motor2PWM, OUTPUT);
+  pinMode(motor2DIR, OUTPUT);
+
+  // Motor pins for Driver 2 as outputs
+  pinMode(motor3PWM, OUTPUT);
+  pinMode(motor3DIR, OUTPUT);
+  pinMode(motor4PWM, OUTPUT);
+  pinMode(motor4DIR, OUTPUT);
+
+  // Motor pins for Motor 5 as outputs
+  pinMode(motor5PWM, OUTPUT);
+  pinMode(motor5DIR, OUTPUT);
+
+  // Configure Joystick Switches as inputs with pull-up resistors
+  pinMode(swPin1, INPUT_PULLUP);
+  pinMode(swPin2, INPUT_PULLUP);
+}
+
+void loop() {
+  // Read joystick 1 axes
+  int xValue1 = analogRead(xAxisPin1); // Read X-axis of joystick 1
+  int yValue1 = analogRead(yAxisPin1); // Read Y-axis of joystick 1
+
+  // Apply dead zone to joystick 1 values
+  if (abs(xValue1 - 512) < DEADZONE) xValue1 = 512;
+  if (abs(yValue1 - 512) < DEADZONE) yValue1 = 512;
+
+  // Map joystick 1 values to motor speeds for Driver 1 (-255 to 255)
+  int motor1Speed = map(xValue1, 0, 1023, -255, 255); // X-axis controls Motor 1
+  int motor2Speed = map(yValue1, 0, 1023, -255, 255); // Y-axis controls Motor 2
+
+  // Motor 1 control
+  if (motor1Speed >= 0) {
+    digitalWrite(motor1DIR, HIGH); // Forward
+    analogWrite(motor1PWM, motor1Speed);
+  } else {
+    digitalWrite(motor1DIR, LOW); // Reverse
+    analogWrite(motor1PWM, -motor1Speed);
+  }
+
+  // Motor 2 control
+  if (motor2Speed >= 0) {
+    digitalWrite(motor2DIR, HIGH); // Forward
+    analogWrite(motor2PWM, motor2Speed);
+  } else {
+    digitalWrite(motor2DIR, LOW); // Reverse
+    analogWrite(motor2PWM, -motor2Speed);
+  }
+
+  // Read joystick 2 axes
+  int xValue2 = analogRead(xAxisPin2); // Read X-axis of joystick 2
+  int yValue2 = analogRead(yAxisPin2); // Read Y-axis of joystick 2
+
+  // Apply dead zone to joystick 2 values
+  if (abs(xValue2 - 512) < DEADZONE) xValue2 = 512;
+  if (abs(yValue2 - 512) < DEADZONE) yValue2 = 512;
+
+  // Map joystick 2 values to motor speeds for Driver 2 (-255 to 255)
+  int motor3Speed = map(xValue2, 0, 1023, -255, 255); // X-axis controls Motor 3
+  int motor4Speed = map(yValue2, 0, 1023, -255, 255); // Y-axis controls Motor 4
+
+  // Motor 3 control
+  if (motor3Speed >= 0) {
+    digitalWrite(motor3DIR, HIGH); // Forward
+    analogWrite(motor3PWM, motor3Speed);
+  } else {
+    digitalWrite(motor3DIR, LOW); // Reverse
+    analogWrite(motor3PWM, -motor3Speed);
+  }
+
+  // Motor 4 control
+  if (motor4Speed >= 0) {
+    digitalWrite(motor4DIR, HIGH); // Forward
+    analogWrite(motor4PWM, motor4Speed);
+  } else {
+    digitalWrite(motor4DIR, LOW); // Reverse
+    analogWrite(motor4PWM, -motor4Speed);
+  }
+
+  // Read switch states (for controlling Motor 5)
+  int swState1 = digitalRead(swPin1); // Read Joystick 1 Switch (SW)
+  int swState2 = digitalRead(swPin2); // Read Joystick 2 Switch (SW)
+
+  // Control Motor 5 using Joystick Switches
+  if (swState1 == LOW) {  // Joystick 1 switch pressed
+    digitalWrite(motor5DIR, HIGH); // Motor 5 forward
+    analogWrite(motor5PWM, 255);
+  } else if (swState2 == LOW) {  // Joystick 2 switch pressed
+    digitalWrite(motor5DIR, LOW); // Motor 5 reverse
+    analogWrite(motor5PWM, 255);
+  } else {  // No switch pressed
+    analogWrite(motor5PWM, 0);
+  }
+}
