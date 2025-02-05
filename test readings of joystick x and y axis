@@ -1,0 +1,36 @@
+inputs
+void setup() {
+  Serial.begin(9600);
+}
+
+void loop() {
+  int joyX = analogRead(A0); // Read X-axis
+  int joyY = analogRead(A1); // Read Y-axis
+
+  Serial.print("Joystick X: ");
+  Serial.print(joyX);
+  Serial.print("  Joystick Y: ");
+  Serial.println(joyY);
+
+  delay(100);
+}
+
+
+Outputs
+void setup() {
+  Serial.begin(9600);
+}
+
+void loop() {
+  int joyX = analogRead(A0); // Read X-axis
+  int joyY = analogRead(A1); // Read Y-axis
+
+  Serial.print("Joystick X: ");
+  Serial.print(joyX);
+  Serial.print("  Joystick Y: ");
+  Serial.println(joyY);
+
+  delay(100);
+}
+
+
