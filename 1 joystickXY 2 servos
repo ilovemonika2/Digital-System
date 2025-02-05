@@ -1,0 +1,44 @@
+Control 2 servos one joystick
+// Pin Definitions
+const int xAxisPin = A0;   // Joystick X-axis
+const int yAxisPin = A1;   // Joystick Y-axis
+const int motor1PWM = 3;   // Motor 1 PWM
+const int motor1DIR = 2;   // Motor 1 Direction
+const int motor2PWM = 5;   // Motor 2 PWM
+const int motor2DIR = 4;   // Motor 2 Direction
+
+void setup() {
+  // Motor pins as outputs
+  pinMode(motor1PWM, OUTPUT);
+  pinMode(motor1DIR, OUTPUT);
+  pinMode(motor2PWM, OUTPUT);
+  pinMode(motor2DIR, OUTPUT);
+}
+
+void loop() {
+  // Read joystick axes
+  int xValue = analogRead(xAxisPin); // Read X-axis
+  int yValue = analogRead(yAxisPin); // Read Y-axis
+
+  // Map joystick values to motor speed (-255 to 255)
+  int motor1Speed = map(xValue, 0, 1023, -255, 255); // X-axis controls motor 1
+  int motor2Speed = map(yValue, 0, 1023, -255, 255); // Y-axis controls motor 2
+
+  // Motor 1 control
+  if (motor1Speed >= 0) {
+    digitalWrite(motor1DIR, HIGH); // Forward
+    analogWrite(motor1PWM, motor1Speed);
+  } else {
+    digitalWrite(motor1DIR, LOW); // Reverse
+    analogWrite(motor1PWM, -motor1Speed);
+  }
+
+  // Motor 2 control
+  if (motor2Speed >= 0) {
+    digitalWrite(motor2DIR, HIGH); // Forward
+    analogWrite(motor2PWM, motor2Speed);
+  } else {
+    digitalWrite(motor2DIR, LOW); // Reverse
+    analogWrite(motor2PWM, -motor2Speed);
+  }
+}
