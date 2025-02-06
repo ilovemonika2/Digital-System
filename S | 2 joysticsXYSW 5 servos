@@ -1,0 +1,61 @@
+#include <Wire.h>
+#include <Adafruit_PWMServoDriver.h>
+
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+
+int joy1XVal, joy1YVal, joy2XVal, joy2YVal;
+bool joy1SWVal, joy2SWVal;
+
+const int deadzone = 100;
+const int centerValue = 512;
+
+void setup() {
+  Serial.begin(9600);
+  
+  Wire.begin(8);
+  Wire.onReceive(receiveEvent);
+
+  pwm.begin();
+  pwm.setPWMFreq(60);
+}
+
+void loop() {
+  // **Servos 1-4: 270° Range (500 - 2500 μs)**
+  int servo1Pos = map(joy1XVal, 0, 1023, 500, 2500);
+  int servo2Pos = map(joy1YVal, 0, 1023, 500, 2500);
+  int servo3Pos = map(joy2XVal, 0, 1023, 500, 2500);
+  int servo4Pos = map(joy2YVal, 0, 1023, 500, 2500);
+
+  // Apply deadzone
+  if (abs(joy1XVal - centerValue) < deadzone) servo1Pos = 1500;
+  if (abs(joy1YVal - centerValue) < deadzone) servo2Pos = 1500;
+  if (abs(joy2XVal - centerValue) < deadzone) servo3Pos = 1500;
+  if (abs(joy2YVal - centerValue) < deadzone) servo4Pos = 1500;
+
+  // **Servo 5: 500-2500 μs (Joystick SW Controls)**
+  int servo5Pos = 1500;  // Default neutral position
+  if (joy1SWVal) {
+    servo5Pos = 2500;  // Joystick 1 SW pressed → Move Servo 5 clockwise
+  } else if (joy2SWVal) {
+    servo5Pos = 500;   // Joystick 2 SW pressed → Move Servo 5 counterclockwise
+  }
+
+  // **Send updated positions to servos**
+  pwm.writeMicroseconds(0, servo1Pos);
+  pwm.writeMicroseconds(1, servo2Pos);
+  pwm.writeMicroseconds(2, servo3Pos);
+  pwm.writeMicroseconds(3, servo4Pos);
+  pwm.writeMicroseconds(4, servo5Pos);
+
+  delay(50);
+}
+
+void receiveEvent(int howMany) {
+  joy1XVal = (Wire.read() << 8) | Wire.read();
+  joy1YVal = (Wire.read() << 8) | Wire.read();
+  joy2XVal = (Wire.read() << 8) | Wire.read();
+  joy2YVal = (Wire.read() << 8) | Wire.read();
+  
+  joy1SWVal = Wire.read(); // Receive Joystick 1 SW state
+  joy2SWVal = Wire.read(); // Receive Joystick 2 SW state
+}
