@@ -1,0 +1,70 @@
+#include <Wire.h>
+#include <Adafruit_PWMServoDriver.h>
+
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();  // Create PCA9685 object
+
+int joy1XVal, joy1YVal, joy2XVal, joy2YVal;
+
+// Define the deadzone size (e.g., ±100 units from center)
+const int deadzone = 100;
+const int centerValue = 512;
+
+void setup() {
+  Serial.begin(9600);
+  
+  Wire.begin(8);  // Join I2C bus as slave with address 8
+  Wire.onRequest(requestEvent);  // Called when master requests data
+  Wire.onReceive(receiveEvent);  // Called when data is received
+  
+  pwm.begin();  // Initialize the PCA9685 module
+  pwm.setPWMFreq(60);  // Set PWM frequency to 60Hz for servos
+}
+
+void loop() {
+  // Map joystick values to servo positions for Joystick 1 (X and Y axes)
+  int servo1Pos = map(joy1XVal, 0, 1023, 500, 2500);  // Map joystick 1 X-axis to servo 1 (PWM range: 500 to 2500)
+  int servo2Pos = map(joy1YVal, 0, 1023, 500, 2500);  // Map joystick 1 Y-axis to servo 2 (PWM range: 500 to 2500)
+
+  // Map joystick values to servo positions for Joystick 2 (X and Y axes)
+  int servo3Pos = map(joy2XVal, 0, 1023, 500, 2500);  // Map joystick 2 X-axis to servo 3
+  int servo4Pos = map(joy2YVal, 0, 1023, 500, 2500);  // Map joystick 2 Y-axis to servo 4
+
+  // Apply deadzone logic for joystick 1 X and Y values
+  if (abs(joy1XVal - centerValue) < deadzone) {
+    servo1Pos = 1500; // Set servo 1 to center position if within deadzone
+  }
+  if (abs(joy1YVal - centerValue) < deadzone) {
+    servo2Pos = 1500; // Set servo 2 to center position if within deadzone
+  }
+
+  // Apply deadzone logic for joystick 2 X and Y values
+  if (abs(joy2XVal - centerValue) < deadzone) {
+    servo3Pos = 1500; // Set servo 3 to center position if within deadzone
+  }
+  if (abs(joy2YVal - centerValue) < deadzone) {
+    servo4Pos = 1500; // Set servo 4 to center position if within deadzone
+  }
+
+  // Control servos on channels 0 to 3 using the Adafruit_PWMServoDriver
+  pwm.writeMicroseconds(0, servo1Pos);  // Control servo 1 (Joystick 1 X-axis)
+  pwm.writeMicroseconds(1, servo2Pos);  // Control servo 2 (Joystick 1 Y-axis)
+  pwm.writeMicroseconds(2, servo3Pos);  // Control servo 3 (Joystick 2 X-axis)
+  pwm.writeMicroseconds(3, servo4Pos);  // Control servo 4 (Joystick 2 Y-axis)
+
+  delay(50);  // Delay for servo adjustment
+}
+
+// This function is called when the slave receives data from the master
+void receiveEvent(int howMany) {
+  joy1XVal = (Wire.read() << 8) | Wire.read(); // Receive X value for Joystick 1
+  joy1YVal = (Wire.read() << 8) | Wire.read(); // Receive Y value for Joystick 1
+
+  joy2XVal = (Wire.read() << 8) | Wire.read(); // Receive X value for Joystick 2
+  joy2YVal = (Wire.read() << 8) | Wire.read(); // Receive Y value for Joystick 2
+}
+
+// This function is called when the master requests data from the slave
+void requestEvent() {
+  // You can send data back to the master here if needed
+  // For now, we won't send anything
+}
