@@ -1,0 +1,58 @@
+#include <Wire.h>
+
+int joy1XPin = A0;  // Joystick 1 X-axis pin
+int joy1YPin = A1;  // Joystick 1 Y-axis pin
+int joy2XPin = A2;  // Joystick 2 X-axis pin
+int joy2YPin = A3;  // Joystick 2 Y-axis pin
+
+int joy1SWPin = 2;  // Joystick 1 SW pin
+int joy2SWPin = 3;  // Joystick 2 SW pin
+
+int joy1XVal, joy1YVal, joy2XVal, joy2YVal;
+bool joy1SWVal, joy2SWVal;
+
+void setup() {
+  Serial.begin(9600);
+  Wire.begin();  // Join I2C bus as master
+
+  pinMode(joy1SWPin, INPUT_PULLUP); // Joystick 1 SW
+  pinMode(joy2SWPin, INPUT_PULLUP); // Joystick 2 SW
+}
+
+void loop() {
+  // Read joystick values
+  joy1XVal = analogRead(joy1XPin);
+  joy1YVal = analogRead(joy1YPin);
+  joy2XVal = analogRead(joy2XPin);
+  joy2YVal = analogRead(joy2YPin);
+
+  // Read switch values (LOW when pressed)
+  joy1SWVal = !digitalRead(joy1SWPin);  // Invert because of pull-up
+  joy2SWVal = !digitalRead(joy2SWPin);  // Invert because of pull-up
+
+  // Print joystick and switch values (for debugging)
+  Serial.print("Joy1 X: "); Serial.print(joy1XVal);
+  Serial.print(" Joy1 Y: "); Serial.print(joy1YVal);
+  Serial.print(" Joy2 X: "); Serial.print(joy2XVal);
+  Serial.print(" Joy2 Y: "); Serial.print(joy2YVal);
+  Serial.print(" Joy1 SW: "); Serial.print(joy1SWVal);
+  Serial.print(" Joy2 SW: "); Serial.println(joy2SWVal);
+
+  // Send joystick and switch data to slave
+  Wire.beginTransmission(8);
+  Wire.write((joy1XVal >> 8) & 0xFF);
+  Wire.write(joy1XVal & 0xFF);
+  Wire.write((joy1YVal >> 8) & 0xFF);
+  Wire.write(joy1YVal & 0xFF);
+  Wire.write((joy2XVal >> 8) & 0xFF);
+  Wire.write(joy2XVal & 0xFF);
+  Wire.write((joy2YVal >> 8) & 0xFF);
+  Wire.write(joy2YVal & 0xFF);
+
+  Wire.write(joy1SWVal);  // Send Joystick 1 SW state
+  Wire.write(joy2SWVal);  // Send Joystick 2 SW state
+
+  Wire.endTransmission();
+
+  delay(50);
+}
