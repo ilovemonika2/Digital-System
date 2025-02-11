@@ -1,0 +1,87 @@
+#include <Wire.h>
+#include <Adafruit_PWMServoDriver.h>
+
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+
+int joy1XVal, joy1YVal, joy2XVal, joy2YVal;
+bool joy1SWVal, joy2SWVal;
+
+const int deadzone = 100;
+const int centerValue = 512;
+
+// **Last known servo positions (Start at neutral)**
+int servo1LastPos = 1500;
+int servo2LastPos = 1500;
+int servo3LastPos = 1500;
+int servo4LastPos = 1500;
+int servo5LastPos = 1500;
+
+// **Movement scaling factors**
+const int joystickScale = 8;  // Adjusts sensitivity for joystick-controlled servos
+const int buttonStep = 50;    // Amount servo 5 moves per button press
+
+void setup() {
+  Serial.begin(9600);
+  
+  Wire.begin(8);
+  Wire.onReceive(receiveEvent);
+
+  pwm.begin();
+  pwm.setPWMFreq(60);
+}
+
+void loop() {
+  // **Servo 1 Movement (Joystick 1 X)**
+  if (abs(joy1XVal - centerValue) > deadzone) {
+    servo1LastPos += (joy1XVal - centerValue) / joystickScale;
+  }
+  
+  // **Servo 2 Movement (Joystick 1 Y)**
+  if (abs(joy1YVal - centerValue) > deadzone) {
+    servo2LastPos += (joy1YVal - centerValue) / joystickScale;
+  }
+
+  // **Servo 3 Movement (Joystick 2 X)**
+  if (abs(joy2XVal - centerValue) > deadzone) {
+    servo3LastPos += (joy2XVal - centerValue) / joystickScale;
+  }
+
+  // **Servo 4 Movement (Joystick 2 Y)**
+  if (abs(joy2YVal - centerValue) > deadzone) {
+    servo4LastPos += (joy2YVal - centerValue) / joystickScale;
+  }
+
+  // **Servo 5: Button Nudge Control**
+  if (joy1SWVal) {
+    servo5LastPos += buttonStep;  // Clockwise nudge
+  } 
+  if (joy2SWVal) {
+    servo5LastPos -= buttonStep;  // Counterclockwise nudge
+  }
+
+  // **Clamp values to prevent out-of-range motion**
+  servo1LastPos = constrain(servo1LastPos, 500, 2500);
+  servo2LastPos = constrain(servo2LastPos, 500, 2500);
+  servo3LastPos = constrain(servo3LastPos, 500, 2500);
+  servo4LastPos = constrain(servo4LastPos, 500, 2500);
+  servo5LastPos = constrain(servo5LastPos, 500, 2500);
+
+  // **Send updated positions to servos**
+  pwm.writeMicroseconds(0, servo1LastPos);
+  pwm.writeMicroseconds(1, servo2LastPos);
+  pwm.writeMicroseconds(2, servo3LastPos);
+  pwm.writeMicroseconds(3, servo4LastPos);
+  pwm.writeMicroseconds(4, servo5LastPos);
+
+  delay(50);
+}
+
+void receiveEvent(int howMany) {
+  joy1XVal = (Wire.read() << 8) | Wire.read();
+  joy1YVal = (Wire.read() << 8) | Wire.read();
+  joy2XVal = (Wire.read() << 8) | Wire.read();
+  joy2YVal = (Wire.read() << 8) | Wire.read();
+  
+  joy1SWVal = Wire.read(); // Receive Joystick 1 SW state
+  joy2SWVal = Wire.read(); // Receive Joystick 2 SW state
+}
