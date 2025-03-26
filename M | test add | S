@@ -1,0 +1,21 @@
+#include <Wire.h>
+
+void setup() {
+  Serial.begin(9600);
+  Wire.begin();  // Initialize I2C bus as master
+  Serial.println("Master requesting slave address...");
+  
+  Wire.requestFrom(8, 1);  // Request 1 byte from slave with address 8
+  
+  if (Wire.available()) {
+    byte slaveAddress = Wire.read();  // Read the address sent by the slave
+    Serial.print("Slave address is: 0x");
+    Serial.println(slaveAddress, HEX);
+  } else {
+    Serial.println("No response from slave.");
+  }
+}
+
+void loop() {
+  // Nothing to do in the loop
+}
