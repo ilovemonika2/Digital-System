@@ -1,0 +1,46 @@
+#include <Wire.h>
+
+int joy1XPin = A0;  // Joystick 1 X-axis pin
+int joy1YPin = A1;  // Joystick 1 Y-axis pin
+int joy2XPin = A2;  // Joystick 2 X-axis pin
+int joy2YPin = A3;  // Joystick 2 Y-axis pin
+int joy3XPin = A4;  // Joystick 3 X-axis pin
+int joy3YPin = A5;  // Joystick 3 Y-axis pin
+
+int joy1XVal, joy1YVal, joy2XVal, joy2YVal, joy3XVal, joy3YVal;
+
+void setup() {
+  Serial.begin(9600);
+  Wire.begin();  // Join I2C bus as master
+}
+
+void loop() {
+  // Read joystick values
+  joy1XVal = analogRead(joy1XPin);
+  joy1YVal = analogRead(joy1YPin);
+  joy2XVal = analogRead(joy2XPin);
+  joy2YVal = analogRead(joy2YPin);
+  joy3XVal = analogRead(joy3XPin);
+  joy3YVal = analogRead(joy3YPin);
+
+  // Send joystick data to slave
+  Wire.beginTransmission(8);  // Slave address 0x8
+  Wire.write((joy1XVal >> 8) & 0xFF);  // Send high byte of Joystick 1 X value
+  Wire.write(joy1XVal & 0xFF);         // Send low byte of Joystick 1 X value
+  Wire.write((joy1YVal >> 8) & 0xFF);  
+  Wire.write(joy1YVal & 0xFF);
+
+  Wire.write((joy2XVal >> 8) & 0xFF);
+  Wire.write(joy2XVal & 0xFF);
+  Wire.write((joy2YVal >> 8) & 0xFF);
+  Wire.write(joy2YVal & 0xFF);
+
+  Wire.write((joy3XVal >> 8) & 0xFF);
+  Wire.write(joy3XVal & 0xFF);
+  Wire.write((joy3YVal >> 8) & 0xFF);
+  Wire.write(joy3YVal & 0xFF);
+
+  Wire.endTransmission();  // End transmission
+
+  delay(50);  // Delay to ensure smooth transmission
+}
