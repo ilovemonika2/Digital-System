@@ -1,0 +1,17 @@
+#include <Wire.h>
+
+void setup() {
+  Serial.begin(9600);
+  Wire.begin(8);  // Slave address is 8
+  Wire.onRequest(requestEvent);  // Register the function to handle requests
+}
+
+void loop() {
+  // Nothing to do in the loop, just wait for requests from the master
+  delay(50);
+}
+
+void requestEvent() {
+  // Send the slave's address to the master when requested
+  Wire.write(8);  // Send slave address (8 is the slave address of this Uno)
+}
