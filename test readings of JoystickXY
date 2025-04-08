@@ -1,36 +1,32 @@
-inputs
+// Joystick analog pins
+const int joy1X = A0;
+const int joy1Y = A1;
+
+const int joy2X = A2;
+const int joy2Y = A3;
+
+const int joy3X = A4;
+const int joy3Y = A5;
+
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(9600); // Start serial monitor
 }
 
 void loop() {
-  int joyX = analogRead(A0); // Read X-axis
-  int joyY = analogRead(A1); // Read Y-axis
+  // Read all joystick axes
+  int j1X = analogRead(joy1X);
+  int j1Y = analogRead(joy1Y);
 
-  Serial.print("Joystick X: ");
-  Serial.print(joyX);
-  Serial.print("  Joystick Y: ");
-  Serial.println(joyY);
+  int j2X = analogRead(joy2X);
+  int j2Y = analogRead(joy2Y);
 
-  delay(100);
+  int j3X = analogRead(joy3X);
+  int j3Y = analogRead(joy3Y);
+
+  // Print the values
+  Serial.print("Joystick 1 - X: "); Serial.print(j1X); Serial.print(" | Y: "); Serial.print(j1Y);
+  Serial.print(" || Joystick 2 - X: "); Serial.print(j2X); Serial.print(" | Y: "); Serial.print(j2Y);
+  Serial.print(" || Joystick 3 - X: "); Serial.print(j3X); Serial.print(" | Y: "); Serial.println(j3Y);
+
+  delay(200); // Update every 200ms
 }
-
-
-Outputs
-void setup() {
-  Serial.begin(9600);
-}
-
-void loop() {
-  int joyX = analogRead(A0); // Read X-axis
-  int joyY = analogRead(A1); // Read Y-axis
-
-  Serial.print("Joystick X: ");
-  Serial.print(joyX);
-  Serial.print("  Joystick Y: ");
-  Serial.println(joyY);
-
-  delay(100);
-}
-
-
